@@ -60,6 +60,9 @@ class Signature extends StatefulWidget {
 }
 
 class SignatureState extends State<Signature> {
+  /// Helper variable indicating that user has left the canvas so we can prevent linking next point
+  /// with straight line.
+  bool _isOutsideDrawField = false;
   GlobalKey _painterKey;
   _SignaturePainter painter;
   List<Point> _points;
@@ -154,18 +157,21 @@ class SignatureState extends State<Signature> {
         // IF USER LEFT THE BOUNDARY AND AND ALSO RETURNED BACK
         // IN ONE MOVE, RETYPE IT AS TAP, AS WE DO NOT WANT TO
         // LINK IT WITH PREVIOUS POINT
-        if (_points.length != 0 && _isFar(o, _points.last.offset)) {
+        if (_isOutsideDrawField) {
           type = PointType.tap;
         }
         setState(() {
+          //IF USER WAS OUTSIDE OF CANVAS WE WILL RESET THE HELPER VARIABLE AS HE HAS RETURNED
+          _isOutsideDrawField = false;
           _points.add(Point(o, type));
         });
       }
+      else {
+        //NOTE: USER LEFT THE CANVAS!!! WE WILL SET HELPER VARIABLE
+        //WE ARE NOT UPDATING IN setState METHOD BECAUSE WE DO NOT NEED TO RUN BUILD METHOD
+        _isOutsideDrawField = true;
+      }
     }
-  }
-
-  bool _isFar(Offset o1, Offset o2) {
-    return (o1.dx - o2.dx).abs() > 30 || (o1.dy - o2.dy).abs() > 30;
   }
 }
 
